@@ -1,5 +1,5 @@
 package com.enigma.aggregator.service;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import com.enigma.aggregator.config.AppProperties;
 import com.enigma.aggregator.dto.LeaderboardEntryDto;
 import com.enigma.aggregator.dto.LeaderboardResponse;
@@ -42,7 +42,7 @@ public class LeaderboardService {
 
     // Single-thread executor for background refresh tasks to ensure sequential runs
     private final ExecutorService refreshExecutor;
-
+    @Autowired
     public LeaderboardService(
         ScraperService scraperService,
         LeaderboardCache cache,

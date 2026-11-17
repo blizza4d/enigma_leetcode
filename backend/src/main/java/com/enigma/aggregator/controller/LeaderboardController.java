@@ -1,5 +1,6 @@
 package com.enigma.aggregator.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.enigma.aggregator.dto.LeaderboardResponse;
 import com.enigma.aggregator.dto.RefreshStatusDto;
 import com.enigma.aggregator.service.LeaderboardService;
@@ -13,10 +14,12 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/v1/leaderboard")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class LeaderboardController {
 
     private final LeaderboardService leaderboardService;
 
+    @Autowired
     public LeaderboardController(LeaderboardService leaderboardService) {
         this.leaderboardService = leaderboardService;
     }

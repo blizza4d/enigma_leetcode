@@ -18,6 +18,9 @@ import java.util.*;
 @Service
 public class RankingService {
 
+    public RankingService() {
+    }
+
     public List<LeaderboardEntryDto> rankAndSort(List<PlayerStats> rawStats, String sortBy, String order) {
         if (rawStats == null || rawStats.isEmpty()) {
             return Collections.emptyList();

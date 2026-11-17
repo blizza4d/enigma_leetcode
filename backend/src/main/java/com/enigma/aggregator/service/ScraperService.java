@@ -1,5 +1,6 @@
 package com.enigma.aggregator.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.enigma.aggregator.client.ProfileClient;
 import com.enigma.aggregator.config.AppProperties;
 import com.enigma.aggregator.model.FetchStatus;
@@ -37,6 +38,7 @@ public class ScraperService {
     private final AtomicInteger currentBatchCompleted = new AtomicInteger(0);
     private final AtomicInteger currentBatchTotal = new AtomicInteger(0);
 
+    @Autowired
     public ScraperService(
         ProfileClient profileClient,
         LeaderboardCache cache,

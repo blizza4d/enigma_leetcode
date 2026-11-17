@@ -1,5 +1,6 @@
 package com.enigma.aggregator.roster;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.enigma.aggregator.config.AppProperties;
 import com.enigma.aggregator.model.Member;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -30,6 +31,7 @@ public class RosterLoader {
     private List<Member> members = Collections.emptyList();
     private final Map<String, Member> membersByUsername = new HashMap<>();
 
+    @Autowired
     public RosterLoader(AppProperties properties, ResourceLoader resourceLoader, ObjectMapper objectMapper) {
         this.properties = properties;
         this.resourceLoader = resourceLoader;

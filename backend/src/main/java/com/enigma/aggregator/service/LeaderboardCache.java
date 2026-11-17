@@ -22,6 +22,9 @@ public class LeaderboardCache {
     private final AtomicReference<Instant> lastUpdated = new AtomicReference<>(null);
     private final AtomicBoolean refreshing = new AtomicBoolean(false);
 
+    public LeaderboardCache() {
+    }
+
     /**
      * Retrieves the last known good stats for a given LeetCode username.
      */

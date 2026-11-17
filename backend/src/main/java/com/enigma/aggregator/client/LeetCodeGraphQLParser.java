@@ -1,5 +1,6 @@
 package com.enigma.aggregator.client;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.enigma.aggregator.model.Member;
 import com.enigma.aggregator.model.PlayerStats;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,6 +22,7 @@ public class LeetCodeGraphQLParser {
     private static final Logger log = LoggerFactory.getLogger(LeetCodeGraphQLParser.class);
     private final ObjectMapper objectMapper;
 
+    @Autowired
     public LeetCodeGraphQLParser(ObjectMapper objectMapper) {
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper must not be null");
     }

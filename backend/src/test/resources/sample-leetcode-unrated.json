@@ -1,0 +1,20 @@
+{
+  "data": {
+    "matchedUser": {
+      "username": "newbie_coder",
+      "submitStatsGlobal": {
+        "acSubmissionNum": [
+          { "difficulty": "All", "count": 135 },
+          { "difficulty": "Easy", "count": 35 },
+          { "difficulty": "Medium", "count": 88 },
+          { "difficulty": "Hard", "count": 12 }
+        ]
+      },
+      "userCalendar": {
+        "streak": 5,
+        "totalActiveDays": 22
+      }
+    },
+    "userContestRanking": null
+  }
+}

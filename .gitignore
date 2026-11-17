@@ -1,0 +1,13 @@
+# Java / Maven / Gradle
+target/
+build/
+.gradle/
+*.jar
+*.class
+
+# Next.js / Node
+node_modules/
+.next/
+out/
+.env
+.env*.local

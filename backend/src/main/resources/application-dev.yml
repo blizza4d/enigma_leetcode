@@ -1,0 +1,13 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+enigma:
+  scraper:
+    mock-enabled: true
+    thread-pool-size: 5
+    task-timeout-seconds: 5
+    rate-limit:
+      base-interval-ms: 50
+      max-jitter-ms: 20

@@ -1,0 +1,23 @@
+{
+  "data": {
+    "matchedUser": {
+      "username": "lee215",
+      "submitStatsGlobal": {
+        "acSubmissionNum": [
+          { "difficulty": "All", "count": 702 },
+          { "difficulty": "Easy", "count": 127 },
+          { "difficulty": "Medium", "count": 421 },
+          { "difficulty": "Hard", "count": 154 }
+        ]
+      },
+      "userCalendar": {
+        "streak": 14,
+        "totalActiveDays": 120
+      }
+    },
+    "userContestRanking": {
+      "rating": 2204.316,
+      "attendedContestsCount": 27
+    }
+  }
+}

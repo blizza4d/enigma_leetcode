@@ -23,6 +23,17 @@ body {
   background-size: 48px 48px;
 }
 
+/* Barely visible CRT telemetry scanline overlay */
+.crt-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.9) 0px,
+    rgba(255, 255, 255, 0.9) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
 /* Dark diagonal carbon-stripe backdrop for the Pit Wall / Add User command console */
 .pitwall-stripes {
   background-color: #0B0B0B;
@@ -40,7 +51,7 @@ body {
   clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
 }
 
-/* Kinetic glitch title styling */
+/* Hover-only Chromatic RGB-split & micro-jitter glitch for main title */
 .glitch-title {
   position: relative;
   display: inline-block;
@@ -60,66 +71,108 @@ body {
 
 .glitch-title::before {
   color: #D6FF00;
-  clip-path: inset(12% 0 65% 0);
-  animation: glitch-clip-1 5s infinite linear alternate-reverse;
 }
 
 .glitch-title::after {
   color: #00F0FF;
-  clip-path: inset(68% 0 8% 0);
-  animation: glitch-clip-2 4.5s infinite linear alternate-reverse;
+}
+
+.glitch-title:hover {
+  animation: micro-jitter 0.28s steps(2, end) both;
 }
 
 .glitch-title:hover::before {
   opacity: 0.85;
-  transform: translate(-3px, 0);
+  animation: rgb-split-left 0.32s steps(3, end) both;
 }
 
 .glitch-title:hover::after {
-  opacity: 0.7;
-  transform: translate(3px, 0);
+  opacity: 0.75;
+  animation: rgb-split-right 0.32s steps(3, end) both;
 }
 
-@keyframes glitch-clip-1 {
-  0%, 88%, 100% {
-    opacity: 0;
-    transform: translate(0, 0);
+@keyframes micro-jitter {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-1.5px, 0.5px); }
+  50% { transform: translate(1.5px, -0.5px); }
+  75% { transform: translate(-1px, 0); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes rgb-split-left {
+  0% { transform: translate(0, 0); clip-path: inset(15% 0 65% 0); }
+  33% { transform: translate(-3px, 1px); clip-path: inset(40% 0 30% 0); }
+  66% { transform: translate(-2px, -1px); clip-path: inset(10% 0 70% 0); }
+  100% { transform: translate(-1.5px, 0); clip-path: inset(20% 0 55% 0); }
+}
+
+@keyframes rgb-split-right {
+  0% { transform: translate(0, 0); clip-path: inset(60% 0 15% 0); }
+  33% { transform: translate(3px, -1px); clip-path: inset(20% 0 55% 0); }
+  66% { transform: translate(2px, 1px); clip-path: inset(65% 0 10% 0); }
+  100% { transform: translate(1.5px, 0); clip-path: inset(50% 0 25% 0); }
+}
+
+/* Subtle hover-only chromatic glitch for #1 Pole Position card */
+@keyframes pole-chromatic-jitter {
+  0% {
+    filter: drop-shadow(0 0 0 transparent);
   }
-  90% {
-    opacity: 0.85;
-    transform: translate(-3px, 1px);
-    clip-path: inset(10% 0 70% 0);
+  25% {
+    filter: drop-shadow(-2px 0 0 rgba(214, 255, 0, 0.55)) drop-shadow(2px 0 0 rgba(0, 240, 255, 0.45));
   }
-  92% {
-    opacity: 0.65;
-    transform: translate(2px, -1px);
-    clip-path: inset(40% 0 40% 0);
+  50% {
+    filter: drop-shadow(2px 0 0 rgba(214, 255, 0, 0.45)) drop-shadow(-2px 0 0 rgba(255, 0, 85, 0.35));
   }
-  94% {
-    opacity: 0;
-    transform: translate(0, 0);
+  75% {
+    filter: drop-shadow(-1px 0 0 rgba(214, 255, 0, 0.35));
+  }
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
   }
 }
 
-@keyframes glitch-clip-2 {
-  0%, 84%, 100% {
-    opacity: 0;
-    transform: translate(0, 0);
+.pole-glitch:hover {
+  animation: pole-chromatic-jitter 0.32s steps(2, end) both;
+}
+
+/* Occasional subtle telemetry opacity flicker for LIVE FEED badge */
+@keyframes telemetry-flicker {
+  0%, 91%, 94%, 97%, 100% { opacity: 1; }
+  92.5% { opacity: 0.45; }
+  95.5% { opacity: 0.72; }
+}
+
+.animate-telemetry-flicker {
+  animation: telemetry-flicker 7.5s infinite;
+}
+
+/* Secret DRS Overdrive Mode 3s Neon Border Pulse */
+@keyframes drs-border-pulse {
+  0%, 100% {
+    border-color: rgba(214, 255, 0, 0.95);
+    box-shadow: 0 0 28px rgba(214, 255, 0, 0.32), inset 0 0 14px rgba(214, 255, 0, 0.08);
   }
-  86% {
-    opacity: 0.7;
-    transform: translate(3px, -1px);
-    clip-path: inset(62% 0 15% 0);
+  50% {
+    border-color: rgba(214, 255, 0, 0.35);
+    box-shadow: 0 0 10px rgba(214, 255, 0, 0.12);
   }
-  88% {
-    opacity: 0.5;
-    transform: translate(-2px, 1px);
-    clip-path: inset(25% 0 55% 0);
-  }
-  90% {
-    opacity: 0;
-    transform: translate(0, 0);
-  }
+}
+
+html[data-drs="true"] .drs-pulse-target {
+  border-left-color: #D6FF00 !important;
+  animation: drs-border-pulse 0.6s ease-in-out infinite !important;
+}
+
+/* Team Radio Equalizer Bar animation */
+@keyframes radio-bar {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+
+.animate-radio-bar {
+  transform-origin: bottom;
+  animation: radio-bar 0.55s ease-in-out infinite;
 }
 
 /* Fast button glitch kick on hover */

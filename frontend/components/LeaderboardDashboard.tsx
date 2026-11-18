@@ -194,7 +194,7 @@ export function LeaderboardDashboard({ initialData, initialError }: LeaderboardD
         {/* Total Club Solved */}
         <motion.div
           variants={kpiCardVariants}
-          className="group relative f1-card-cut p-4 bg-white/[0.04] backdrop-blur-md border border-white/10 hover:border-[#D6FF00]/60 hover:bg-white/[0.07] transition-all duration-150"
+          className="drs-pulse-target group relative f1-card-cut p-4 bg-white/[0.04] backdrop-blur-md border border-white/10 hover:border-[#D6FF00]/60 hover:bg-white/[0.07] transition-all duration-150"
         >
           <div className="flex items-center justify-between text-[#888888] mb-2">
             <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em]">
@@ -213,7 +213,7 @@ export function LeaderboardDashboard({ initialData, initialError }: LeaderboardD
         {/* P1 Pole Leader */}
         <motion.div
           variants={kpiCardVariants}
-          className="group relative f1-card-cut p-4 bg-[#D6FF00]/[0.06] backdrop-blur-md border border-[#D6FF00]/35 border-l-4 border-l-[#D6FF00] shadow-[0_0_24px_rgba(214,255,0,0.1)] hover:border-[#D6FF00] transition-all duration-150"
+          className="drs-pulse-target pole-glitch group relative f1-card-cut p-4 bg-[#D6FF00]/[0.06] backdrop-blur-md border border-[#D6FF00]/35 border-l-4 border-l-[#D6FF00] shadow-[0_0_24px_rgba(214,255,0,0.1)] hover:border-[#D6FF00] transition-all duration-150"
         >
           <div className="flex items-center justify-between text-[#D6FF00] mb-2">
             <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em]">
@@ -232,7 +232,7 @@ export function LeaderboardDashboard({ initialData, initialError }: LeaderboardD
         {/* Top Contest Rating */}
         <motion.div
           variants={kpiCardVariants}
-          className="group relative f1-card-cut p-4 bg-white/[0.04] backdrop-blur-md border border-white/10 hover:border-[#D6FF00]/60 hover:bg-white/[0.07] transition-all duration-150"
+          className="drs-pulse-target group relative f1-card-cut p-4 bg-white/[0.04] backdrop-blur-md border border-white/10 hover:border-[#D6FF00]/60 hover:bg-white/[0.07] transition-all duration-150"
         >
           <div className="flex items-center justify-between text-[#888888] mb-2">
             <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em]">
@@ -253,7 +253,7 @@ export function LeaderboardDashboard({ initialData, initialError }: LeaderboardD
         {/* Longest Active Streak */}
         <motion.div
           variants={kpiCardVariants}
-          className="group relative f1-card-cut p-4 bg-white/[0.04] backdrop-blur-md border border-white/10 hover:border-[#D6FF00]/60 hover:bg-white/[0.07] transition-all duration-150"
+          className="drs-pulse-target group relative f1-card-cut p-4 bg-white/[0.04] backdrop-blur-md border border-white/10 hover:border-[#D6FF00]/60 hover:bg-white/[0.07] transition-all duration-150"
         >
           <div className="flex items-center justify-between text-[#888888] mb-2">
             <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em]">

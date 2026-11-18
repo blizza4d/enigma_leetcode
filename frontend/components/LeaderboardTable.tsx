@@ -151,9 +151,9 @@ export function LeaderboardTable({
           <div role="rowgroup" className="mb-3 px-5 pb-2 border-b border-white/[0.07]">
             <div
               role="row"
-              className="flex items-center text-[10px] font-mono font-bold uppercase tracking-[0.22em] text-[#777777]"
+              className="flex items-center gap-3 sm:gap-4 text-[10px] font-mono font-bold uppercase tracking-[0.22em] text-[#777777]"
             >
-              <div role="columnheader" className="w-28 shrink-0 text-left">
+              <div role="columnheader" className="w-24 sm:w-28 shrink-0 pr-2 text-left">
                 POS
               </div>
               <div role="columnheader" className="flex-1 min-w-[200px] pr-4">
@@ -219,9 +219,9 @@ export function LeaderboardTable({
               {Array.from({ length: 7 }).map((_, idx) => (
                 <div
                   key={`skeleton-${idx}`}
-                  className="f1-card-cut flex items-center px-5 py-5 bg-white/5 backdrop-blur-md border border-white/10 border-l-4 border-l-white/10 animate-pulse"
+                  className="f1-card-cut flex items-center gap-3 sm:gap-4 px-5 py-5 bg-white/5 backdrop-blur-md border border-white/10 border-l-4 border-l-white/10 animate-pulse"
                 >
-                  <div className="w-28 shrink-0">
+                  <div className="w-24 sm:w-28 shrink-0 pr-2">
                     <div className="h-10 w-16 bg-white/10" />
                   </div>
                   <div className="flex-1 pr-4 space-y-2">
@@ -291,10 +291,10 @@ export function LeaderboardTable({
                     role="row"
                     variants={towerRowVariants}
                     className={cn(
-                      'group relative f1-card-cut flex items-center px-5 py-4 backdrop-blur-md border border-white/10 border-l-4 transition-all duration-150 ease-out overflow-hidden',
+                      'drs-pulse-target group relative f1-card-cut flex items-center gap-3 sm:gap-4 px-5 py-4 backdrop-blur-md border border-white/10 border-l-4 transition-all duration-150 ease-out overflow-visible',
                       'bg-white/5 hover:bg-white/10 hover:translate-x-2 hover:border-l-4 hover:border-l-[#D6FF00] hover:border-white/20',
                       isFirst &&
-                        'bg-[#D6FF00]/[0.07] border-[#D6FF00]/30 border-l-[#D6FF00] shadow-[0_0_36px_rgba(214,255,0,0.16)] hover:bg-[#D6FF00]/[0.12] hover:shadow-[0_0_44px_rgba(214,255,0,0.24)]',
+                        'pole-glitch bg-[#D6FF00]/[0.07] border-[#D6FF00]/30 border-l-[#D6FF00] shadow-[0_0_36px_rgba(214,255,0,0.16)] hover:bg-[#D6FF00]/[0.12] hover:shadow-[0_0_44px_rgba(214,255,0,0.24)]',
                       isSecond &&
                         'bg-white/[0.065] border-white/15 border-l-white/85 shadow-[0_6px_28px_rgba(255,255,255,0.04)]',
                       isThird &&
@@ -302,22 +302,23 @@ export function LeaderboardTable({
                       !isPodium && 'border-l-white/10'
                     )}
                   >
-                    {/* Massive Watermarked F1 Rank Typography */}
+                    {/* Fixed-width Rank Container (prevents #10+ italic collision/clipping) */}
                     <div
                       role="cell"
-                      className="w-28 shrink-0 flex items-center relative pr-2"
+                      className="w-24 sm:w-28 shrink-0 pr-2 flex items-center overflow-visible"
                     >
                       <span
                         className={cn(
-                          'font-display font-black italic tracking-tighter leading-none select-none tabular-nums transition-all duration-150',
+                          'font-sans font-black italic tracking-tighter leading-none select-none tabular-nums whitespace-nowrap transition-all duration-150',
+                          member.rank >= 10 ? 'text-4xl sm:text-5xl' : 'text-5xl sm:text-6xl',
                           isFirst &&
-                            'text-5xl sm:text-6xl text-[#D6FF00] drop-shadow-[0_0_16px_rgba(214,255,0,0.5)]',
+                            'text-[#D6FF00] drop-shadow-[0_0_16px_rgba(214,255,0,0.5)]',
                           isSecond &&
-                            'text-5xl sm:text-6xl text-white/55 group-hover:text-white/80',
+                            'text-white/55 group-hover:text-white/80',
                           isThird &&
-                            'text-5xl sm:text-6xl text-white/35 group-hover:text-white/65',
+                            'text-white/35 group-hover:text-white/65',
                           !isPodium &&
-                            'text-5xl sm:text-6xl text-white/10 group-hover:text-[#D6FF00]/45'
+                            'text-white/10 group-hover:text-[#D6FF00]/45'
                         )}
                       >
                         #{member.rank}

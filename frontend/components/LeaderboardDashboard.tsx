@@ -5,6 +5,7 @@ import { LeaderboardResponse, SortBy, SortOrder } from '@/types/leaderboard';
 import { fetchLeaderboard, API_BASE_URL } from '@/lib/api';
 import { LeaderboardTable } from './LeaderboardTable';
 import { RefreshButton } from './RefreshButton';
+import { AddMemberForm } from './AddMemberForm';
 import { Trophy, Code2, Flame, Award, Clock, AlertTriangle } from 'lucide-react';
 
 interface LeaderboardDashboardProps {
@@ -49,6 +50,16 @@ export function LeaderboardDashboard({ initialData, initialError }: LeaderboardD
     loadData(sortBy, order);
   };
 
+  const handleMemberAdded = (updatedLeaderboard: LeaderboardResponse) => {
+    setError(null);
+    if (sortBy === 'solved' && order === 'desc') {
+      setData(updatedLeaderboard);
+    } else {
+      setData(updatedLeaderboard);
+      loadData(sortBy, order);
+    }
+  };
+
   // Format "Last updated"
   const formattedLastUpdated = data?.lastUpdated
     ? new Date(data.lastUpdated).toLocaleString('en-US', {
@@ -80,26 +91,37 @@ export function LeaderboardDashboard({ initialData, initialError }: LeaderboardD
   return (
     <div className="space-y-8">
       {/* Hero / Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-neutral-800">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Club Performance Leaderboard
-          </h1>
-          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
-            Aggregated metrics for college competitive programmers, sourced via LeetCode&apos;s GraphQL API.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-mono text-neutral-400 bg-neutral-900/80 px-3 py-1.5 rounded-md border border-neutral-800">
-            <Clock className="w-3.5 h-3.5 text-neutral-500" />
-            <span>Last Updated: <strong className="text-neutral-200">{formattedLastUpdated}</strong></span>
+      <div className="space-y-4 pb-6 border-b border-neutral-800">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+              Club Performance Leaderboard
+            </h1>
+            <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+              Aggregated metrics for college competitive programmers, sourced via LeetCode&apos;s GraphQL API.
+            </p>
           </div>
 
-          <RefreshButton
-            onRefreshComplete={handleRefreshComplete}
-            initialRefreshing={data?.refreshing || false}
-          />
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-1.5 text-xs font-mono text-neutral-400 bg-neutral-900/80 px-3 py-1.5 rounded-md border border-neutral-800">
+              <Clock className="w-3.5 h-3.5 text-neutral-500" />
+              <span>Last Updated: <strong className="text-neutral-200">{formattedLastUpdated}</strong></span>
+            </div>
+
+            <RefreshButton
+              onRefreshComplete={handleRefreshComplete}
+              initialRefreshing={data?.refreshing || false}
+            />
+          </div>
+        </div>
+
+        {/* Add LeetCode User Toolbar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
+          <div className="text-xs text-neutral-400">
+            <span className="font-medium text-neutral-300">Add Club Member</span>
+            <span className="hidden sm:inline text-neutral-500"> &mdash; enter any public LeetCode username to fetch stats live.</span>
+          </div>
+          <AddMemberForm onMemberAdded={handleMemberAdded} />
         </div>
       </div>
 

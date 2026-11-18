@@ -1,23 +1,26 @@
 package com.enigma.aggregator.roster;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import com.enigma.aggregator.config.AppProperties;
+import com.enigma.aggregator.exception.DuplicateMemberException;
 import com.enigma.aggregator.model.Member;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Loads and validates the club roster at startup from the configured JSON file.
- * Fails fast with clear descriptive error messages if any validation fails.
+ * Loads and validates the club roster at startup from the configured JSON file,
+ * and maintains a thread-safe mutable roster supporting runtime member additions.
  */
 @Component
 public class RosterLoader {
@@ -28,8 +31,8 @@ public class RosterLoader {
     private final ResourceLoader resourceLoader;
     private final ObjectMapper objectMapper;
 
-    private List<Member> members = Collections.emptyList();
-    private final Map<String, Member> membersByUsername = new HashMap<>();
+    private final CopyOnWriteArrayList<Member> members = new CopyOnWriteArrayList<>();
+    private final Map<String, Member> membersByUsername = new ConcurrentHashMap<>();
 
     @Autowired
     public RosterLoader(AppProperties properties, ResourceLoader resourceLoader, ObjectMapper objectMapper) {
@@ -40,7 +43,9 @@ public class RosterLoader {
 
     @PostConstruct
     public void init() {
-        this.members = loadAndValidate();
+        List<Member> initialMembers = loadAndValidate();
+        this.members.clear();
+        this.members.addAll(initialMembers);
         log.info("Successfully loaded and validated {} club members from roster.", members.size());
     }
 
@@ -104,8 +109,39 @@ public class RosterLoader {
         return Collections.unmodifiableList(validated);
     }
 
+    /**
+     * Thread-safely registers a new member into the in-memory roster at runtime.
+     *
+     * @param member Member to add (name and leetcodeUsername must be non-blank)
+     * @return The added normalized Member
+     * @throws IllegalArgumentException if username is blank
+     * @throws DuplicateMemberException if username already exists (case-insensitive)
+     */
+    public Member addMember(Member member) {
+        if (member == null || member.leetcodeUsername() == null || member.leetcodeUsername().isBlank()) {
+            throw new IllegalArgumentException("LeetCode username must not be blank.");
+        }
+
+        String trimmedUsername = member.leetcodeUsername().trim();
+        String trimmedName = (member.name() == null || member.name().isBlank())
+            ? trimmedUsername
+            : member.name().trim();
+
+        Member normalized = new Member(trimmedName, trimmedUsername);
+        String usernameKey = trimmedUsername.toLowerCase(Locale.ROOT);
+
+        Member existing = membersByUsername.putIfAbsent(usernameKey, normalized);
+        if (existing != null) {
+            throw new DuplicateMemberException(trimmedUsername);
+        }
+
+        members.add(normalized);
+        log.info("Added new member '{}' (@{}) to runtime roster. Total members: {}", trimmedName, trimmedUsername, members.size());
+        return normalized;
+    }
+
     public List<Member> getMembers() {
-        return members;
+        return Collections.unmodifiableList(members);
     }
 
     public Optional<Member> findByUsername(String username) {

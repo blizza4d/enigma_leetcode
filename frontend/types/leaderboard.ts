@@ -38,5 +38,10 @@ export interface RefreshStatus {
   finishedAt: string | null;
 }
 
+export interface AddMemberResponse {
+  member: Omit<LeaderboardEntry, 'rank'>;
+  leaderboard: LeaderboardResponse;
+}
+
 export type SortBy = 'solved' | 'streak' | 'rating';
 export type SortOrder = 'asc' | 'desc';

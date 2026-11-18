@@ -1,4 +1,10 @@
-import { LeaderboardResponse, RefreshStatus, SortBy, SortOrder } from '@/types/leaderboard';
+import {
+  AddMemberResponse,
+  LeaderboardResponse,
+  RefreshStatus,
+  SortBy,
+  SortOrder,
+} from '@/types/leaderboard';
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'https://enigma-leetcode-2.onrender.com';
@@ -91,6 +97,46 @@ export async function fetchRefreshStatus(): Promise<RefreshStatus> {
 
   if (!res.ok) {
     throw new Error(`Failed to fetch refresh status (HTTP ${res.status})`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Registers a new LeetCode username in the club roster, fetches their stats immediately,
+ * and returns the added member plus the updated leaderboard snapshot.
+ */
+export async function addRosterMember(
+  username: string,
+  name?: string
+): Promise<AddMemberResponse> {
+  const payload: { username: string; name?: string } = {
+    username: username.trim(),
+  };
+  if (name && name.trim()) {
+    payload.name = name.trim();
+  }
+
+  const res = await fetch(`${API_V1_BASE}/roster`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    let errorDetail = `Failed to add user (HTTP ${res.status})`;
+    try {
+      const errJson = await res.json();
+      if (errJson?.message) {
+        errorDetail = errJson.message;
+      }
+    } catch {
+      // Keep fallback message
+    }
+    throw new Error(errorDetail);
   }
 
   return res.json();

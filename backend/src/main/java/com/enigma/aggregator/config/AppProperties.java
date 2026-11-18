@@ -60,8 +60,8 @@ public class AppProperties {
     }
 
     public static class ScraperProperties {
-        private int threadPoolSize = 5;
-        private int taskTimeoutSeconds = 10;
+        private int threadPoolSize = 3;
+        private int taskTimeoutSeconds = 15;
         private boolean mockEnabled = false;
         private RateLimitProperties rateLimit = new RateLimitProperties();
         private RetryProperties retry = new RetryProperties();
@@ -117,7 +117,7 @@ public class AppProperties {
     }
 
     public static class RateLimitProperties {
-        private long baseIntervalMs = 400;
+        private long baseIntervalMs = 300;
         private long maxJitterMs = 100;
 
         public long getBaseIntervalMs() {
@@ -162,7 +162,7 @@ public class AppProperties {
         private String endpointUrl = "https://leetcode.com/graphql";
         private String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
         private String referer = "https://leetcode.com";
-        private int httpTimeoutSeconds = 8;
+        private int httpTimeoutSeconds = 15;
 
         public String getEndpointUrl() {
             return endpointUrl;

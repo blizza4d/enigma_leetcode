@@ -1,10 +1,15 @@
 package com.enigma.aggregator.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.enigma.aggregator.config.AppProperties;
+import com.enigma.aggregator.dto.AddMemberResponse;
 import com.enigma.aggregator.dto.LeaderboardEntryDto;
 import com.enigma.aggregator.dto.LeaderboardResponse;
 import com.enigma.aggregator.dto.RefreshStatusDto;
+import com.enigma.aggregator.exception.DuplicateMemberException;
+import com.enigma.aggregator.exception.ProfileNotFoundException;
 import com.enigma.aggregator.exception.RefreshAlreadyRunningException;
+import com.enigma.aggregator.model.FetchStatus;
+import com.enigma.aggregator.model.Member;
 import com.enigma.aggregator.model.PlayerStats;
 import com.enigma.aggregator.model.RefreshState;
 import com.enigma.aggregator.roster.RosterLoader;
@@ -93,6 +98,49 @@ public class LeaderboardService {
             cache.isRefreshing(),
             ranked
         );
+    }
+
+    /**
+     * Registers a new club member at runtime, immediately fetches their LeetCode stats,
+     * updates the in-memory cache, and returns both the member stats and refreshed leaderboard.
+     */
+    public AddMemberResponse addMember(String username, String name) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("LeetCode username must not be empty.");
+        }
+
+        String trimmedUsername = username.trim();
+        if (!trimmedUsername.matches("^[A-Za-z0-9_-]{1,50}$")) {
+            throw new IllegalArgumentException(
+                "Invalid LeetCode username '" + trimmedUsername + "'. Use only letters, numbers, hyphens, or underscores."
+            );
+        }
+
+        if (rosterLoader.isRegisteredMember(trimmedUsername)) {
+            throw new DuplicateMemberException(trimmedUsername);
+        }
+
+        String displayName = (name == null || name.isBlank()) ? trimmedUsername : name.trim();
+        Member candidate = new Member(displayName, trimmedUsername);
+
+        log.info("Fetching LeetCode stats for new member '{}' (@{})...", displayName, trimmedUsername);
+        PlayerStats stats = scraperService.fetchOne(candidate);
+
+        if (stats.status() == FetchStatus.NOT_FOUND) {
+            throw new ProfileNotFoundException(trimmedUsername);
+        }
+
+        rosterLoader.addMember(candidate);
+        cache.upsertEntry(stats);
+
+        log.info("Successfully registered '{}' (@{}) with status {} and {} solved.",
+            displayName, trimmedUsername, stats.status(), stats.totalSolved());
+
+        return new AddMemberResponse(stats, getLeaderboard("solved", "desc"));
+    }
+
+    public List<Member> getRoster() {
+        return rosterLoader.getMembers();
     }
 
     /**

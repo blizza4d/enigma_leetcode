@@ -58,6 +58,36 @@ public class LeaderboardCache {
         }
     }
 
+    /**
+     * Atomically inserts or updates a single player's stats in the current snapshot
+     * without waiting for a full roster refresh.
+     */
+    public void upsertEntry(PlayerStats stats) {
+        if (stats == null) return;
+        if (stats.status() == FetchStatus.OK) {
+            recordSuccess(stats);
+        }
+
+        String targetKey = stats.username().toLowerCase(Locale.ROOT);
+        latestSnapshot.updateAndGet(current -> {
+            List<PlayerStats> updated = new ArrayList<>(current.size() + 1);
+            boolean replaced = false;
+            for (PlayerStats existing : current) {
+                if (existing.username().toLowerCase(Locale.ROOT).equals(targetKey)) {
+                    updated.add(stats);
+                    replaced = true;
+                } else {
+                    updated.add(existing);
+                }
+            }
+            if (!replaced) {
+                updated.add(stats);
+            }
+            return Collections.unmodifiableList(updated);
+        });
+        this.lastUpdated.set(Instant.now());
+    }
+
     public List<PlayerStats> getSnapshot() {
         return latestSnapshot.get();
     }

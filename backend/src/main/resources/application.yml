@@ -9,10 +9,10 @@ enigma:
   roster:
     file-path: "classpath:members.json"
   scraper:
-    thread-pool-size: 5
-    task-timeout-seconds: 10
+    thread-pool-size: 3
+    task-timeout-seconds: 15
     rate-limit:
-      base-interval-ms: 400
+      base-interval-ms: 300
       max-jitter-ms: 100
     retry:
       max-attempts: 2
@@ -21,7 +21,7 @@ enigma:
       endpoint-url: "https://leetcode.com/graphql"
       user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
       referer: "https://leetcode.com"
-      http-timeout-seconds: 8
+      http-timeout-seconds: 15
   leaderboard:
     auto-refresh-cron: "0 */30 * * * *"
     refresh-on-startup: true

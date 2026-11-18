@@ -1,6 +1,5 @@
 package com.enigma.aggregator.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import com.enigma.aggregator.client.ProfileClient;
 import com.enigma.aggregator.config.AppProperties;
 import com.enigma.aggregator.model.FetchStatus;
@@ -9,6 +8,7 @@ import com.enigma.aggregator.model.PlayerStats;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -21,8 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Concurrent aggregation engine for club member stats.
  * Executes member fetches in parallel across a bounded, named thread pool using CompletableFuture.
- * Guarantees that individual timeouts or failures never fail the overall aggregation,
- * falling back to last-known-good cached data with status STALE.
+ * Per-task timeouts begin when a worker starts executing the member's request (not while queued),
+ * eliminating queue-induced timeouts while keeping concurrency strictly bounded.
  */
 @Service
 public class ScraperService {
@@ -33,6 +33,7 @@ public class ScraperService {
     private final LeaderboardCache cache;
     private final AppProperties properties;
     private final ExecutorService executor;
+    private final ExecutorService taskRunner;
 
     // Concurrency metrics / progress tracking for current or last batch
     private final AtomicInteger currentBatchCompleted = new AtomicInteger(0);
@@ -50,7 +51,9 @@ public class ScraperService {
 
         int poolSize = properties.getScraper().getThreadPoolSize();
         this.executor = createNamedExecutor(poolSize);
-        log.info("Initialized ScraperService with bounded thread pool size: {}", poolSize);
+        this.taskRunner = createTaskRunner();
+        log.info("Initialized ScraperService with bounded thread pool size: {}, timeout: {}s",
+            poolSize, properties.getScraper().getTaskTimeoutSeconds());
     }
 
     /**
@@ -66,6 +69,7 @@ public class ScraperService {
         this.cache = cache;
         this.properties = properties;
         this.executor = executor;
+        this.taskRunner = createTaskRunner();
     }
 
     private ExecutorService createNamedExecutor(int poolSize) {
@@ -78,9 +82,28 @@ public class ScraperService {
         return Executors.newFixedThreadPool(poolSize, threadFactory);
     }
 
+    private ExecutorService createTaskRunner() {
+        AtomicInteger threadNumber = new AtomicInteger(1);
+        ThreadFactory threadFactory = runnable -> {
+            Thread thread = new Thread(runnable, "leetcode-fetch-io-" + threadNumber.getAndIncrement());
+            thread.setDaemon(true);
+            return thread;
+        };
+        return Executors.newCachedThreadPool(threadFactory);
+    }
+
+    /**
+     * Fetches current statistics for a single member with per-task timeout and fallback handling.
+     */
+    public PlayerStats fetchOne(Member member) {
+        Objects.requireNonNull(member, "member must not be null");
+        int timeoutSeconds = properties.getScraper().getTaskTimeoutSeconds();
+        return executeWithTimeout(member, timeoutSeconds);
+    }
+
     /**
      * Fetches current statistics for all members concurrently.
-     * Uses per-task timeouts and resilience handlers so that individual failures,
+     * Uses per-task execution timeouts and resilience handlers so that individual failures,
      * rate limits, or timeouts fallback to last known good cached values.
      *
      * @param members List of club members to fetch
@@ -100,9 +123,7 @@ public class ScraperService {
 
         List<CompletableFuture<PlayerStats>> futures = members.stream()
             .map(member -> CompletableFuture
-                .supplyAsync(() -> profileClient.fetch(member), executor)
-                .orTimeout(timeoutSeconds, TimeUnit.SECONDS)
-                .handle((stats, throwable) -> handleResult(member, stats, throwable))
+                .supplyAsync(() -> executeWithTimeout(member, timeoutSeconds), executor)
                 .whenComplete((result, ex) -> currentBatchCompleted.incrementAndGet())
             )
             .toList();
@@ -122,6 +143,18 @@ public class ScraperService {
 
         log.info("Finished stats aggregation for {} members.", results.size());
         return results;
+    }
+
+    /**
+     * Executes a single member fetch with an execution-scoped timeout so queue wait time
+     * never eats into the member's HTTP timeout budget.
+     */
+    private PlayerStats executeWithTimeout(Member member, int timeoutSeconds) {
+        return CompletableFuture
+            .supplyAsync(() -> profileClient.fetch(member), taskRunner)
+            .orTimeout(timeoutSeconds, TimeUnit.SECONDS)
+            .handle((stats, throwable) -> handleResult(member, stats, throwable))
+            .join();
     }
 
     /**
@@ -190,18 +223,23 @@ public class ScraperService {
 
     @PreDestroy
     public void shutdown() {
-        log.info("Initiating graceful shutdown of ScraperService thread pool...");
-        executor.shutdown();
+        log.info("Initiating graceful shutdown of ScraperService thread pools...");
+        shutdownPool(executor, "leetcode-scraper");
+        shutdownPool(taskRunner, "leetcode-fetch-io");
+        log.info("ScraperService thread pools shut down successfully.");
+    }
+
+    private void shutdownPool(ExecutorService pool, String name) {
+        pool.shutdown();
         try {
-            if (!executor.awaitTermination(15, TimeUnit.SECONDS)) {
-                log.warn("Executor pool did not terminate within 15 seconds; forcing shutdownNow...");
-                executor.shutdownNow();
+            if (!pool.awaitTermination(15, TimeUnit.SECONDS)) {
+                log.warn("Pool '{}' did not terminate within 15 seconds; forcing shutdownNow...", name);
+                pool.shutdownNow();
             }
         } catch (InterruptedException e) {
-            log.error("Shutdown interrupted; forcing immediate shutdown...");
-            executor.shutdownNow();
+            log.error("Shutdown interrupted for pool '{}'; forcing immediate shutdown...", name);
+            pool.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        log.info("ScraperService thread pool shut down successfully.");
     }
 }

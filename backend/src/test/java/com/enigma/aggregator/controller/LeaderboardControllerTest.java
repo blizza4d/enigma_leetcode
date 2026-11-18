@@ -1,12 +1,16 @@
 package com.enigma.aggregator.controller;
 
 import com.enigma.aggregator.config.AppProperties;
+import com.enigma.aggregator.dto.AddMemberResponse;
 import com.enigma.aggregator.dto.LeaderboardEntryDto;
 import com.enigma.aggregator.dto.LeaderboardResponse;
 import com.enigma.aggregator.dto.RefreshStatusDto;
+import com.enigma.aggregator.exception.DuplicateMemberException;
 import com.enigma.aggregator.exception.GlobalExceptionHandler;
+import com.enigma.aggregator.exception.ProfileNotFoundException;
 import com.enigma.aggregator.exception.RefreshAlreadyRunningException;
 import com.enigma.aggregator.model.FetchStatus;
+import com.enigma.aggregator.model.PlayerStats;
 import com.enigma.aggregator.model.RefreshState;
 import com.enigma.aggregator.service.LeaderboardService;
 import org.junit.jupiter.api.DisplayName;
@@ -136,5 +140,52 @@ class LeaderboardControllerTest {
             .andExpect(jsonPath("$.path", is("/api/v1/leaderboard")))
             .andExpect(jsonPath("$.stackTrace").doesNotExist())
             .andExpect(jsonPath("$.trace").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/roster should add member, return 200 OK with stats and updated leaderboard")
+    void testAddRosterMemberSuccess() throws Exception {
+        Instant now = Instant.now();
+        PlayerStats stats = PlayerStats.ok("New Coder", "new_coder", 120, 40, 60, 20, 4, null, 0, now);
+        LeaderboardEntryDto entry = LeaderboardEntryDto.from(1, stats);
+        AddMemberResponse response = new AddMemberResponse(stats, new LeaderboardResponse(now, false, List.of(entry)));
+
+        when(leaderboardService.addMember(eq("new_coder"), eq("New Coder"))).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/roster")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"new_coder\",\"name\":\"New Coder\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.member.username", is("new_coder")))
+            .andExpect(jsonPath("$.member.totalSolved", is(120)))
+            .andExpect(jsonPath("$.leaderboard.entries", hasSize(1)));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/roster should return 409 Conflict for duplicate username")
+    void testAddRosterMemberDuplicate() throws Exception {
+        when(leaderboardService.addMember(eq("blizza4d"), eq(null)))
+            .thenThrow(new DuplicateMemberException("blizza4d"));
+
+        mockMvc.perform(post("/api/v1/roster")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"blizza4d\"}"))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.status", is(409)))
+            .andExpect(jsonPath("$.message", containsString("already in the roster")));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/roster should return 404 Not Found for invalid LeetCode profile")
+    void testAddRosterMemberNotFound() throws Exception {
+        when(leaderboardService.addMember(eq("ghost_user_999"), eq(null)))
+            .thenThrow(new ProfileNotFoundException("ghost_user_999"));
+
+        mockMvc.perform(post("/api/v1/roster")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"ghost_user_999\"}"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.status", is(404)))
+            .andExpect(jsonPath("$.message", containsString("not found")));
     }
 }

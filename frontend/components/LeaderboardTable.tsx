@@ -1,18 +1,20 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { motion, type Variants } from 'framer-motion';
 import { LeaderboardEntry, SortBy, SortOrder } from '@/types/leaderboard';
 import { StatusBadge } from './StatusBadge';
+import { cn } from '@/lib/cn';
 import {
   ExternalLink,
   Flame,
-  Trophy,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   Search,
   X,
-  UserCheck,
+  Users,
+  Crosshair,
 } from 'lucide-react';
 
 interface LeaderboardTableProps {
@@ -23,6 +25,31 @@ interface LeaderboardTableProps {
   isLoading?: boolean;
 }
 
+const towerContainerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.055,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const towerRowVariants: Variants = {
+  hidden: { opacity: 0, y: 22 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 420,
+      damping: 32,
+      mass: 0.8,
+    },
+  },
+};
+
 export function LeaderboardTable({
   entries,
   sortBy,
@@ -32,7 +59,6 @@ export function LeaderboardTable({
 }: LeaderboardTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Client-side search filter by display name or LeetCode username
   const filteredEntries = useMemo(() => {
     if (!searchQuery.trim()) return entries;
     const q = searchQuery.toLowerCase().trim();
@@ -45,22 +71,22 @@ export function LeaderboardTable({
 
   const handleHeaderClick = (column: SortBy) => {
     if (sortBy === column) {
-      // Toggle order
       onSortChange(column, order === 'desc' ? 'asc' : 'desc');
     } else {
-      // Switch column, default to desc for metrics
       onSortChange(column, 'desc');
     }
   };
 
   const renderSortIndicator = (column: SortBy) => {
     if (sortBy !== column) {
-      return <ArrowUpDown className="w-3.5 h-3.5 text-neutral-600 group-hover:text-neutral-400 transition-colors ml-1" />;
+      return (
+        <ArrowUpDown className="w-3.5 h-3.5 text-[#666666] group-hover:text-white transition-colors ml-1.5" />
+      );
     }
     return order === 'desc' ? (
-      <ArrowDown className="w-3.5 h-3.5 text-white ml-1" />
+      <ArrowDown className="w-3.5 h-3.5 text-[#D6FF00] ml-1.5" />
     ) : (
-      <ArrowUp className="w-3.5 h-3.5 text-white ml-1" />
+      <ArrowUp className="w-3.5 h-3.5 text-[#D6FF00] ml-1.5" />
     );
   };
 
@@ -69,264 +95,357 @@ export function LeaderboardTable({
     return order === 'asc' ? 'ascending' : 'descending';
   };
 
-  const getRankBadge = (rank: number) => {
-    if (rank === 1) {
-      return (
-        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/30 font-bold font-mono text-xs shadow-sm shadow-amber-500/10">
-          <Trophy className="w-3.5 h-3.5 text-amber-400 mr-0.5" />
-          1
-        </span>
-      );
-    }
-    if (rank === 2) {
-      return (
-        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-300/10 text-slate-300 border border-slate-300/30 font-bold font-mono text-xs shadow-sm shadow-slate-300/10">
-          2
-        </span>
-      );
-    }
-    if (rank === 3) {
-      return (
-        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-600/10 text-amber-600 border border-amber-600/30 font-bold font-mono text-xs shadow-sm shadow-amber-600/10">
-          3
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center justify-center w-7 h-7 font-mono font-medium text-neutral-400 text-xs">
-        #{rank}
-      </span>
-    );
-  };
+  const formatPos = (rank: number) => String(rank).padStart(2, '0');
 
-  const getRowHighlight = (rank: number) => {
-    if (rank === 1) return 'bg-amber-500/[0.03] hover:bg-amber-500/[0.06] border-l-2 border-l-amber-400/70';
-    if (rank === 2) return 'bg-slate-400/[0.02] hover:bg-slate-400/[0.05] border-l-2 border-l-slate-400/70';
-    if (rank === 3) return 'bg-amber-700/[0.02] hover:bg-amber-700/[0.05] border-l-2 border-l-amber-600/70';
-    return 'hover:bg-neutral-900/60 border-l-2 border-l-transparent';
-  };
+  // Key forces clean staggered replay when sort order or list membership changes
+  const listAnimationKey = `${sortBy}-${order}-${filteredEntries.map((e) => e.username).join(',')}`;
 
   return (
     <div className="w-full space-y-4">
-      {/* Search Bar & Summary Toolbar */}
+      {/* Telemetry Filter & Grid Count Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D6FF00] pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name or @username..."
+            placeholder="FILTER DRIVERS // NAME OR @HANDLE"
             aria-label="Filter leaderboard by member name or username"
-            className="w-full pl-9 pr-9 py-1.5 text-xs bg-[#111111] border border-neutral-800 rounded-md text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-neutral-600 focus:ring-1 focus:ring-neutral-600 transition-colors"
+            className="w-full pl-6 pr-8 py-2 text-xs font-mono uppercase tracking-[0.12em] bg-transparent border-0 border-b border-white/20 text-white placeholder-[#666666] rounded-none focus:outline-none focus:border-[#D6FF00] focus:shadow-[0_4px_14px_-2px_rgba(214,255,0,0.35)] transition-all"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
               aria-label="Clear search input"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300"
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-[#888888] hover:text-[#D6FF00]"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-3 text-xs text-neutral-400 font-mono">
-          <span className="flex items-center gap-1.5">
-            <UserCheck className="w-3.5 h-3.5 text-neutral-500" />
-            Showing {filteredEntries.length} of {entries.length} members
+        <div className="flex items-center gap-3 text-[11px] font-mono uppercase tracking-[0.16em] text-[#888888]">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/[0.04] border border-white/10">
+            <Users className="w-3.5 h-3.5 text-[#D6FF00]" />
+            <span>
+              GRID: <strong className="text-white">{filteredEntries.length}</strong> / {entries.length}
+            </span>
           </span>
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-x-auto rounded-lg border border-neutral-800 bg-[#0d0d0d] shadow-2xl">
-        <table className="w-full text-left border-collapse" aria-label="Competitive Programming Club Leaderboard">
-          <thead>
-            <tr className="border-b border-neutral-800 bg-[#141414] text-[11px] font-mono uppercase tracking-wider text-neutral-400">
-              <th scope="col" className="py-3 px-4 w-16 text-center">
-                Rank
-              </th>
-              <th scope="col" className="py-3 px-4">
-                Member
-              </th>
-              <th scope="col" aria-sort={getAriaSort('solved')} className="py-3 px-4">
+      {/* F1 Live Timing Tower */}
+      <div className="overflow-x-auto pb-2">
+        <div
+          role="table"
+          aria-label="Enigma Club F1 Timing Tower Leaderboard"
+          className="min-w-[700px] w-full"
+        >
+          {/* Timing Tower Column Header Strip */}
+          <div
+            role="rowgroup"
+            className="mb-2 bg-[#0D0D0D] border border-white/10 border-b-2 border-b-[#D6FF00]/60"
+          >
+            <div
+              role="row"
+              className="flex items-center px-4 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#888888]"
+            >
+              <div role="columnheader" className="w-20 shrink-0 text-left">
+                POS
+              </div>
+              <div role="columnheader" className="flex-1 min-w-[200px] pr-4">
+                DRIVER // HANDLE
+              </div>
+              <div
+                role="columnheader"
+                aria-sort={getAriaSort('solved')}
+                className="w-48 shrink-0"
+              >
                 <button
                   type="button"
                   onClick={() => handleHeaderClick('solved')}
-                  className="group inline-flex items-center font-mono uppercase text-[11px] hover:text-white transition-colors focus:outline-none focus:underline"
+                  className={cn(
+                    'group inline-flex items-center font-mono uppercase tracking-[0.2em] transition-colors focus:outline-none focus:text-[#D6FF00]',
+                    sortBy === 'solved' ? 'text-white' : 'text-[#888888] hover:text-white'
+                  )}
                 >
-                  Problems Solved
+                  SOLVED
                   {renderSortIndicator('solved')}
                 </button>
-              </th>
-              <th scope="col" aria-sort={getAriaSort('streak')} className="py-3 px-4">
+              </div>
+              <div
+                role="columnheader"
+                aria-sort={getAriaSort('streak')}
+                className="w-32 shrink-0"
+              >
                 <button
                   type="button"
                   onClick={() => handleHeaderClick('streak')}
-                  className="group inline-flex items-center font-mono uppercase text-[11px] hover:text-white transition-colors focus:outline-none focus:underline"
+                  className={cn(
+                    'group inline-flex items-center font-mono uppercase tracking-[0.2em] transition-colors focus:outline-none focus:text-[#D6FF00]',
+                    sortBy === 'streak' ? 'text-white' : 'text-[#888888] hover:text-white'
+                  )}
                 >
-                  Streak
+                  STREAK
                   {renderSortIndicator('streak')}
                 </button>
-              </th>
-              <th scope="col" aria-sort={getAriaSort('rating')} className="py-3 px-4">
+              </div>
+              <div
+                role="columnheader"
+                aria-sort={getAriaSort('rating')}
+                className="w-36 shrink-0 text-right"
+              >
                 <button
                   type="button"
                   onClick={() => handleHeaderClick('rating')}
-                  className="group inline-flex items-center font-mono uppercase text-[11px] hover:text-white transition-colors focus:outline-none focus:underline"
+                  className={cn(
+                    'group inline-flex items-center justify-end font-mono uppercase tracking-[0.2em] transition-colors focus:outline-none focus:text-[#D6FF00]',
+                    sortBy === 'rating' ? 'text-white' : 'text-[#888888] hover:text-white'
+                  )}
                 >
-                  Contest Rating
+                  RATING
                   {renderSortIndicator('rating')}
                 </button>
-              </th>
-            </tr>
-          </thead>
+              </div>
+            </div>
+          </div>
 
-          <tbody className="divide-y divide-neutral-800/60 text-xs">
-            {isLoading ? (
-              // Loading Skeleton Rows
-              Array.from({ length: 10 }).map((_, idx) => (
-                <tr key={`skeleton-${idx}`} className="animate-pulse">
-                  <td className="py-4 px-4 text-center">
-                    <div className="h-6 w-6 bg-neutral-800 rounded-full mx-auto" />
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="h-4 w-32 bg-neutral-800 rounded mb-1.5" />
-                    <div className="h-3 w-20 bg-neutral-900 rounded" />
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="h-5 w-16 bg-neutral-800 rounded mb-1" />
-                    <div className="h-2.5 w-28 bg-neutral-900 rounded" />
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="h-4 w-12 bg-neutral-800 rounded" />
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="h-4 w-20 bg-neutral-800 rounded" />
-                  </td>
-                </tr>
-              ))
-            ) : filteredEntries.length === 0 ? (
-              // Empty State
-              <tr>
-                <td colSpan={5} className="py-12 text-center text-neutral-500">
-                  <div className="max-w-xs mx-auto space-y-2">
-                    <p className="text-sm font-medium text-neutral-400">No members found</p>
-                    <p className="text-xs text-neutral-600">
-                      {searchQuery
-                        ? `No club members match the filter "${searchQuery}".`
-                        : 'No leaderboard statistics currently available.'}
-                    </p>
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="mt-2 text-xs text-white underline underline-offset-4 hover:text-neutral-300"
-                      >
-                        Reset search filter
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              // Member Rows
-              filteredEntries.map((member) => (
-                <tr
-                  key={member.username}
-                  className={`transition-colors duration-100 ${getRowHighlight(member.rank)}`}
+          {/* Timing Tower Rows */}
+          {isLoading ? (
+            <div role="rowgroup" className="space-y-2">
+              {Array.from({ length: 7 }).map((_, idx) => (
+                <div
+                  key={`skeleton-${idx}`}
+                  className="flex items-center px-4 py-4 bg-white/[0.04] backdrop-blur-md border border-white/[0.06] border-l-4 border-l-white/10 animate-pulse"
                 >
-                  {/* Rank */}
-                  <td className="py-3 px-4 text-center whitespace-nowrap">
-                    {getRankBadge(member.rank)}
-                  </td>
+                  <div className="w-20 shrink-0">
+                    <div className="h-6 w-10 bg-white/10" />
+                  </div>
+                  <div className="flex-1 pr-4 space-y-2">
+                    <div className="h-4 w-36 bg-white/10" />
+                    <div className="h-3 w-24 bg-white/5" />
+                  </div>
+                  <div className="w-48 shrink-0 space-y-2">
+                    <div className="h-5 w-14 bg-white/10" />
+                    <div className="h-1.5 w-32 bg-white/5" />
+                  </div>
+                  <div className="w-32 shrink-0">
+                    <div className="h-4 w-16 bg-white/10" />
+                  </div>
+                  <div className="w-36 shrink-0 flex justify-end">
+                    <div className="h-5 w-20 bg-white/10" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredEntries.length === 0 ? (
+            <div
+              role="rowgroup"
+              className="py-16 px-4 text-center bg-white/[0.03] backdrop-blur-md border border-white/10"
+            >
+              <Crosshair className="w-7 h-7 text-[#D6FF00]/60 mx-auto mb-3" />
+              <p className="font-display text-sm font-bold uppercase tracking-[0.2em] text-white">
+                NO DRIVERS ON GRID
+              </p>
+              <p className="text-xs font-mono text-[#888888] mt-1.5">
+                {searchQuery
+                  ? `NO TELEMETRY MATCH FOR "${searchQuery.toUpperCase()}".`
+                  : 'AWAITING TELEMETRY SYNC FROM LEETCODE.'}
+              </p>
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="mt-4 px-4 py-1.5 text-[11px] font-mono font-bold uppercase tracking-widest bg-[#D6FF00] text-black hover:bg-black hover:text-[#D6FF00] border border-[#D6FF00] transition-colors"
+                >
+                  RESET FILTER
+                </button>
+              )}
+            </div>
+          ) : (
+            <motion.div
+              key={listAnimationKey}
+              role="rowgroup"
+              variants={towerContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="space-y-2"
+            >
+              {filteredEntries.map((member) => {
+                const isFirst = member.rank === 1;
+                const isSecond = member.rank === 2;
+                const isThird = member.rank === 3;
+                const isPodium = isFirst || isSecond || isThird;
 
-                  {/* Member Name + Profile Link */}
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-neutral-200">
-                        {member.displayName}
+                const total = Math.max(member.totalSolved, 1);
+                const easyPct = (member.easySolved / total) * 100;
+                const medPct = (member.mediumSolved / total) * 100;
+                const hardPct = (member.hardSolved / total) * 100;
+
+                return (
+                  <motion.div
+                    key={member.username}
+                    role="row"
+                    variants={towerRowVariants}
+                    className={cn(
+                      'group relative flex items-center px-4 py-3.5 backdrop-blur-md border border-white/[0.08] border-l-4 transition-all duration-150 ease-out',
+                      'bg-white/5 hover:bg-white/[0.11] hover:translate-x-[4px] hover:border-l-[#D6FF00] hover:border-white/20',
+                      isFirst &&
+                        'bg-[#D6FF00]/[0.07] border-[#D6FF00]/30 border-l-[#D6FF00] shadow-[0_0_28px_rgba(214,255,0,0.14)] hover:bg-[#D6FF00]/[0.12]',
+                      isSecond &&
+                        'bg-white/[0.07] border-white/20 border-l-white shadow-[0_0_20px_rgba(255,255,255,0.06)]',
+                      isThird &&
+                        'bg-white/[0.06] border-amber-400/25 border-l-amber-400/90',
+                      !isPodium && 'border-l-white/15'
+                    )}
+                  >
+                    {/* POS Column */}
+                    <div role="cell" className="w-20 shrink-0 flex items-center gap-2">
+                      <span
+                        className={cn(
+                          'font-display font-bold tracking-wider tabular-nums',
+                          isFirst &&
+                            'text-xl text-[#D6FF00] drop-shadow-[0_0_10px_rgba(214,255,0,0.55)]',
+                          isSecond && 'text-lg text-white',
+                          isThird && 'text-lg text-amber-300',
+                          !isPodium && 'text-sm font-mono text-[#888888] group-hover:text-white'
+                        )}
+                      >
+                        {formatPos(member.rank)}
                       </span>
+                      {isFirst && (
+                        <span className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-mono font-bold uppercase tracking-widest bg-[#D6FF00] text-black">
+                          P1
+                        </span>
+                      )}
+                    </div>
+
+                    {/* DRIVER // HANDLE Column */}
+                    <div role="cell" className="flex-1 min-w-[200px] pr-4">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={cn(
+                            'font-bold tracking-tight text-sm sm:text-base transition-colors',
+                            isFirst ? 'text-white' : 'text-white/95 group-hover:text-white'
+                          )}
+                        >
+                          {member.displayName}
+                        </span>
+                        <StatusBadge
+                          status={member.status}
+                          errorMessage={member.errorMessage}
+                        />
+                      </div>
                       <a
                         href={`https://leetcode.com/u/${member.username}/`}
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Open ${member.displayName}'s LeetCode profile in new tab`}
-                        className="inline-flex items-center gap-0.5 text-neutral-500 hover:text-neutral-300 transition-colors font-mono text-[11px]"
+                        className="inline-flex items-center gap-1 mt-0.5 text-[11px] font-mono text-[#888888] hover:text-[#D6FF00] transition-colors focus:outline-none focus:text-[#D6FF00]"
                       >
-                        @{member.username}
+                        <span>@{member.username}</span>
                         <ExternalLink className="w-2.5 h-2.5 opacity-60" />
                       </a>
-                      <StatusBadge status={member.status} errorMessage={member.errorMessage} />
                     </div>
-                  </td>
 
-                  {/* Solved + Breakdown */}
-                  <td className="py-3 px-4 whitespace-nowrap">
-                    <div className="space-y-1">
-                      <span className="text-sm font-bold font-mono text-white">
-                        {member.totalSolved.toLocaleString()}
-                      </span>
-                      <div className="flex items-center gap-1.5 text-[10px] font-mono">
+                    {/* SOLVED + Difficulty Telemetry Bar */}
+                    <div role="cell" className="w-48 shrink-0 pr-4">
+                      <div className="flex items-baseline gap-2">
+                        <span
+                          className={cn(
+                            'text-lg font-mono font-bold tabular-nums',
+                            isFirst ? 'text-[#D6FF00]' : 'text-white'
+                          )}
+                        >
+                          {member.totalSolved.toLocaleString()}
+                        </span>
+                        <span className="text-[10px] font-mono text-[#888888] uppercase">
+                          AC
+                        </span>
+                      </div>
+
+                      {/* Mini Telemetry Bar */}
+                      <div className="w-36 h-1 bg-white/10 flex overflow-hidden mt-1.5 mb-1">
+                        <div
+                          style={{ width: `${easyPct}%` }}
+                          className="h-full bg-emerald-400"
+                        />
+                        <div
+                          style={{ width: `${medPct}%` }}
+                          className="h-full bg-[#D6FF00]"
+                        />
+                        <div
+                          style={{ width: `${hardPct}%` }}
+                          className="h-full bg-rose-500"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 text-[10px] font-mono tabular-nums">
                         <span className="text-emerald-400" title="Easy Solved">
-                          E: {member.easySolved}
+                          E:{member.easySolved}
                         </span>
-                        <span className="text-neutral-600">/</span>
-                        <span className="text-amber-400" title="Medium Solved">
-                          M: {member.mediumSolved}
+                        <span className="text-[#D6FF00]" title="Medium Solved">
+                          M:{member.mediumSolved}
                         </span>
-                        <span className="text-neutral-600">/</span>
                         <span className="text-rose-400" title="Hard Solved">
-                          H: {member.hardSolved}
+                          H:{member.hardSolved}
                         </span>
                       </div>
                     </div>
-                  </td>
 
-                  {/* Current Active Streak */}
-                  <td className="py-3 px-4 whitespace-nowrap">
-                    <div className="inline-flex items-center gap-1.5 font-mono">
-                      <Flame
-                        className={`w-3.5 h-3.5 ${
-                          member.currentStreak > 0
-                            ? 'text-orange-500 fill-orange-500/20'
-                            : 'text-neutral-600'
-                        }`}
-                      />
-                      <span
-                        className={`font-semibold ${
-                          member.currentStreak > 0 ? 'text-neutral-200' : 'text-neutral-500'
-                        }`}
-                      >
-                        {member.currentStreak} {member.currentStreak === 1 ? 'day' : 'days'}
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Contest Rating */}
-                  <td className="py-3 px-4 whitespace-nowrap">
-                    {member.contestRating !== null ? (
-                      <div className="space-y-0.5 font-mono">
-                        <span className="text-sm font-bold text-neutral-200">
-                          {member.contestRating.toFixed(1)}
+                    {/* STREAK Column */}
+                    <div role="cell" className="w-32 shrink-0">
+                      <div className="inline-flex items-center gap-1.5 font-mono tabular-nums">
+                        <Flame
+                          className={cn(
+                            'w-3.5 h-3.5',
+                            member.currentStreak > 0
+                              ? 'text-[#D6FF00] fill-[#D6FF00]/25'
+                              : 'text-[#555555]'
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            'text-sm font-bold',
+                            member.currentStreak > 0 ? 'text-white' : 'text-[#666666]'
+                          )}
+                        >
+                          {member.currentStreak}
                         </span>
-                        <p className="text-[10px] text-neutral-500">
-                          {member.contestsAttended}{' '}
-                          {member.contestsAttended === 1 ? 'contest' : 'contests'}
-                        </p>
+                        <span className="text-[10px] uppercase text-[#888888]">
+                          {member.currentStreak === 1 ? 'DAY' : 'DAYS'}
+                        </span>
                       </div>
-                    ) : (
-                      <div className="space-y-0.5 font-mono">
-                        <span className="text-xs italic text-neutral-500">Unrated</span>
-                        <p className="text-[10px] text-neutral-600">0 contests</p>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                    </div>
+
+                    {/* RATING Column */}
+                    <div role="cell" className="w-36 shrink-0 text-right font-mono tabular-nums">
+                      {member.contestRating !== null ? (
+                        <div>
+                          <span className="text-sm font-bold text-white">
+                            {member.contestRating.toFixed(1)}
+                          </span>
+                          <p className="text-[10px] uppercase tracking-wider text-[#888888]">
+                            {member.contestsAttended}{' '}
+                            {member.contestsAttended === 1 ? 'RACE' : 'RACES'}
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#888888] bg-white/[0.04] border border-white/10">
+                            UNRATED
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
+        </div>
       </div>
     </div>
   );

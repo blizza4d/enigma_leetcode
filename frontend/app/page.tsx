@@ -1,3 +1,4 @@
+import { RacingMarquee } from '@/components/RacingMarquee';
 import { Navbar } from '@/components/Navbar';
 import { LeaderboardDashboard } from '@/components/LeaderboardDashboard';
 import { fetchLeaderboard } from '@/lib/api';
@@ -12,25 +13,27 @@ export default async function HomePage() {
   try {
     initialData = await fetchLeaderboard('solved', 'desc');
   } catch (err: any) {
-    // Graceful fallback during SSR when backend may not yet be running
     initialError = err?.message || 'Backend service unreachable';
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#080808] text-[#ededed]">
+    <div className="min-h-screen flex flex-col text-white">
+      <RacingMarquee />
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <LeaderboardDashboard
           initialData={initialData}
           initialError={initialError}
         />
       </main>
 
-      <footer className="border-t border-neutral-800/80 bg-[#080808] py-6 text-center text-xs text-neutral-500 font-mono">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>The Enigma Global Aggregator &bull; LeetCode Edition</span>
-          <span>College Competitive Programming Club</span>
+      <footer className="border-t border-white/10 bg-[#050505]/90 py-6 text-xs text-[#888888] font-mono uppercase tracking-[0.16em]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span>
+            ENIGMA // <span className="text-[#D6FF00]">LEETCODE EDITION</span>
+          </span>
+          <span>NO DAYS OFF // COMPETITIVE PROGRAMMING CLUB</span>
         </div>
       </footer>
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { triggerRefresh, fetchRefreshStatus } from '@/lib/api';
 import { RefreshStatus } from '@/types/leaderboard';
@@ -50,7 +51,7 @@ export function RefreshButton({ onRefreshComplete, initialRefreshing = false }: 
         stopPolling();
         setIsRefreshing(false);
         setProgress(null);
-        setSuccessNotice('Leaderboard updated!');
+        setSuccessNotice('TELEMETRY SYNCED');
         setTimeout(() => {
           if (isMountedRef.current) setSuccessNotice(null);
         }, 4000);
@@ -59,12 +60,11 @@ export function RefreshButton({ onRefreshComplete, initialRefreshing = false }: 
         stopPolling();
         setIsRefreshing(false);
         setProgress(null);
-        setErrorMessage('Refresh encountered an issue. Displaying cached data.');
+        setErrorMessage('Sync fault — showing cached snapshot.');
         onRefreshComplete();
       }
     } catch (err: unknown) {
       if (!isMountedRef.current) return;
-      // Do not stop immediately on transient polling glitch
       console.warn('Status poll warning:', err);
     }
   };
@@ -72,9 +72,7 @@ export function RefreshButton({ onRefreshComplete, initialRefreshing = false }: 
   const startPolling = () => {
     stopPolling();
     setIsRefreshing(true);
-    // Immediate initial poll
     pollStatus();
-    // Then every 2 seconds with cleanup
     pollIntervalRef.current = setInterval(pollStatus, 2000);
   };
 
@@ -89,7 +87,6 @@ export function RefreshButton({ onRefreshComplete, initialRefreshing = false }: 
       startPolling();
     } catch (err: any) {
       if (err?.status === 409) {
-        // Refresh is already in progress by background scheduler or another user
         if (err.refreshStatus) {
           setProgress({ completed: err.refreshStatus.completed, total: err.refreshStatus.total });
         }
@@ -103,36 +100,36 @@ export function RefreshButton({ onRefreshComplete, initialRefreshing = false }: 
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-      <button
+      <motion.button
+        whileTap={!isRefreshing ? { scale: 0.96 } : undefined}
         onClick={handleClick}
         disabled={isRefreshing}
         aria-label="Refresh leaderboard data from LeetCode"
-        className={`inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-[#080808] ${
+        className={`inline-flex items-center justify-center gap-2 px-4 py-2 text-[11px] font-mono font-bold uppercase tracking-[0.16em] rounded-none border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#D6FF00] focus:ring-offset-2 focus:ring-offset-[#050505] ${
           isRefreshing
-            ? 'bg-neutral-900 border-neutral-700 text-neutral-400 cursor-not-allowed'
-            : 'bg-white text-black border-white hover:bg-neutral-200 active:scale-95'
+            ? 'bg-[#111111] border-[#D6FF00]/40 text-[#D6FF00] cursor-not-allowed shadow-[0_0_16px_rgba(214,255,0,0.12)]'
+            : 'bg-white text-black border-white hover:bg-black hover:text-[#D6FF00] hover:border-[#D6FF00] hover:shadow-[0_0_18px_rgba(214,255,0,0.25)]'
         }`}
       >
-        <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-neutral-400' : 'text-black'}`} />
+        <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-[#D6FF00]' : ''}`} />
         <span>
           {isRefreshing
             ? progress && progress.total > 0
-              ? `Syncing (${progress.completed}/${progress.total})...`
-              : 'Refreshing...'
-            : 'Refresh Data'}
+              ? `SYNCING [${progress.completed}/${progress.total}]`
+              : 'SYNCING...'
+            : 'REFRESH TELEMETRY'}
         </span>
-      </button>
+      </motion.button>
 
-      {/* Messages */}
       {errorMessage && (
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-md">
-          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono text-rose-300 bg-rose-500/10 border border-rose-500/30">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-rose-400" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {successNotice && (
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono font-bold tracking-wider text-[#D6FF00] bg-[#D6FF00]/10 border border-[#D6FF00]/40">
           <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
           <span>{successNotice}</span>
         </div>

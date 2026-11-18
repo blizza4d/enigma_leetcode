@@ -14,15 +14,30 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle carbon fiber + motorsport telemetry grid background */
+/* Pitch-black carbon backdrop with ultra-subtle, non-competing grid lines */
 .carbon-bg {
   background-color: #050505;
   background-image:
-    radial-gradient(circle at 80% 0%, rgba(214, 255, 0, 0.08) 0%, transparent 45%),
-    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 35%),
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Dark diagonal carbon-stripe backdrop for the Pit Wall / Add User command console */
+.pitwall-stripes {
+  background-color: #0B0B0B;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+}
+
+/* Angled F1 chassis chamfer on top-right corner */
+.f1-card-cut {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
 }
 
 /* Kinetic glitch title styling */
@@ -107,6 +122,19 @@ body {
   }
 }
 
+/* Fast button glitch kick on hover */
+@keyframes btn-glitch-pulse {
+  0% { transform: skewX(-8deg) translate(0, 0); }
+  25% { transform: skewX(-10deg) translate(-2px, 1px); }
+  50% { transform: skewX(-6deg) translate(2px, -1px); }
+  75% { transform: skewX(-9deg) translate(-1px, 0); }
+  100% { transform: skewX(-8deg) translate(0, 0); }
+}
+
+.btn-aggressive:hover:not(:disabled) {
+  animation: btn-glitch-pulse 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
 /* Custom motorsport scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -118,7 +146,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: #222222;
 }
 
 ::-webkit-scrollbar-thumb:hover {

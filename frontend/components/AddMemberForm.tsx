@@ -64,35 +64,36 @@ export function AddMemberForm({ onMemberAdded }: AddMemberFormProps) {
   };
 
   return (
-    <div className="w-full bg-[#0A0A0A]/90 backdrop-blur-md border border-white/10 border-l-2 border-l-[#D6FF00] p-4 sm:p-5">
-      {/* Console Header Line */}
-      <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-white/[0.06]">
-        <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-[#888888]">
+    <div className="relative w-full pitwall-stripes border border-white/10 border-l-4 border-l-[#D6FF00] p-5 sm:p-6 shadow-[0_12px_40px_rgba(0,0,0,0.65)]">
+      {/* Pit Wall Header Bar */}
+      <div className="flex items-center justify-between gap-2 mb-4 pb-2.5 border-b border-white/[0.08]">
+        <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-[#888888]">
           <Terminal className="w-3.5 h-3.5 text-[#D6FF00]" />
           <span className="text-white font-bold">PIT_WALL // REGISTER_DRIVER</span>
-          <span className="hidden sm:inline text-[#888888]">// LIVE GRAPHQL INGEST</span>
+          <span className="hidden sm:inline text-[#666666]">// DIRECT GRAPHQL UPLINK</span>
         </div>
-        <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-[#D6FF00]/80 hidden sm:inline">
-          READY_
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-[#D6FF00]">
+          <span className="w-1.5 h-1.5 bg-[#D6FF00] animate-pulse" />
+          CONSOLE READY
         </span>
       </div>
 
-      {/* Brutalist Sharp Terminal Form */}
+      {/* Stark Brutalist Input Console */}
       <form
         onSubmit={handleSubmit}
         className="flex flex-col md:flex-row items-stretch md:items-end gap-4"
         aria-label="Add a new LeetCode user to the club roster"
       >
-        {/* LeetCode Username Input - Bottom Border Only + Neon Focus Glow */}
+        {/* LeetCode Handle Input */}
         <div className="flex-1">
           <label
             htmlFor="leetcode-username-input"
-            className="block text-[10px] font-mono uppercase tracking-[0.18em] text-[#888888] mb-1"
+            className="block text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#888888] mb-1.5"
           >
             &gt; LEETCODE_HANDLE *
           </label>
           <div className="relative flex items-center">
-            <ChevronRight className="w-4 h-4 text-[#D6FF00] absolute left-0 pointer-events-none" />
+            <ChevronRight className="w-4 h-4 text-[#D6FF00] absolute left-2.5 pointer-events-none" />
             <input
               id="leetcode-username-input"
               type="text"
@@ -105,16 +106,16 @@ export function AddMemberForm({ onMemberAdded }: AddMemberFormProps) {
               placeholder="ENTER USERNAME (E.G. BLIZZA4D)"
               aria-label="LeetCode username"
               required
-              className="w-full pl-5 pr-2 py-2 text-xs sm:text-sm font-mono bg-transparent text-white placeholder-[#555555] rounded-none border-0 border-b border-white/25 focus:outline-none focus:border-[#D6FF00] focus:shadow-[0_4px_14px_-2px_rgba(214,255,0,0.4)] disabled:opacity-50 transition-all duration-150"
+              className="w-full pl-8 pr-3 py-2.5 text-xs sm:text-sm font-mono bg-black text-white placeholder-[#555555] rounded-none border-0 border-b-2 border-b-white focus:outline-none focus:border-b-[#D6FF00] focus:shadow-[0_6px_20px_-4px_rgba(214,255,0,0.45)] disabled:opacity-50 transition-all duration-150"
             />
           </div>
         </div>
 
-        {/* Optional Display Name Input */}
+        {/* Optional Callsign / Display Name Input */}
         <div className="md:w-64">
           <label
             htmlFor="display-name-input"
-            className="block text-[10px] font-mono uppercase tracking-[0.18em] text-[#888888] mb-1"
+            className="block text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#888888] mb-1.5"
           >
             &gt; CALLSIGN (OPTIONAL)
           </label>
@@ -126,20 +127,20 @@ export function AddMemberForm({ onMemberAdded }: AddMemberFormProps) {
             disabled={isSubmitting}
             placeholder="DISPLAY NAME"
             aria-label="Display name (optional)"
-            className="w-full px-1 py-2 text-xs sm:text-sm font-mono bg-transparent text-white placeholder-[#555555] rounded-none border-0 border-b border-white/20 focus:outline-none focus:border-[#D6FF00] focus:shadow-[0_4px_14px_-2px_rgba(214,255,0,0.4)] disabled:opacity-50 transition-all duration-150"
+            className="w-full px-3 py-2.5 text-xs sm:text-sm font-mono bg-black text-white placeholder-[#555555] rounded-none border-0 border-b-2 border-b-white/70 focus:outline-none focus:border-b-[#D6FF00] focus:shadow-[0_6px_20px_-4px_rgba(214,255,0,0.45)] disabled:opacity-50 transition-all duration-150"
           />
         </div>
 
-        {/* High-Visibility Neon Yellow Button -> Inverts to Black + Neon Border on Hover */}
+        {/* Aggressive Solid Neon Yellow ADD USER Button with Glitch / Skew Hover */}
         <motion.button
-          whileTap={!isSubmitting && username.trim() ? { scale: 0.97 } : undefined}
+          whileTap={!isSubmitting && username.trim() ? { scale: 0.95 } : undefined}
           type="submit"
           disabled={isSubmitting || !username.trim()}
           aria-label="Add LeetCode user to leaderboard"
-          className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-display font-bold uppercase tracking-[0.16em] rounded-none border transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#D6FF00] focus:ring-offset-2 focus:ring-offset-[#050505] ${
+          className={`btn-aggressive inline-flex items-center justify-center gap-2 px-7 py-3 text-xs font-display font-bold uppercase tracking-[0.18em] rounded-none border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#D6FF00] focus:ring-offset-2 focus:ring-offset-black ${
             isSubmitting || !username.trim()
-              ? 'bg-[#D6FF00]/30 border-[#D6FF00]/30 text-black/60 cursor-not-allowed'
-              : 'bg-[#D6FF00] text-black border-[#D6FF00] hover:bg-black hover:text-[#D6FF00] hover:border-[#D6FF00] hover:shadow-[0_0_22px_rgba(214,255,0,0.35)]'
+              ? 'bg-[#D6FF00]/25 border-[#D6FF00]/25 text-black/60 cursor-not-allowed'
+              : 'bg-[#D6FF00] text-black border-[#D6FF00] hover:bg-[#E5FE44] hover:border-[#E5FE44] hover:shadow-[0_0_28px_rgba(214,255,0,0.5)]'
           }`}
         >
           {isSubmitting ? (
@@ -149,7 +150,7 @@ export function AddMemberForm({ onMemberAdded }: AddMemberFormProps) {
             </>
           ) : (
             <>
-              <UserPlus className="w-3.5 h-3.5" />
+              <UserPlus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>ADD USER</span>
             </>
           )}
@@ -166,7 +167,7 @@ export function AddMemberForm({ onMemberAdded }: AddMemberFormProps) {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.15 }}
             role="alert"
-            className="mt-3 flex items-center justify-between gap-2 px-3 py-2 text-xs font-mono text-rose-300 bg-rose-500/10 border border-rose-500/30 border-l-2 border-l-rose-400"
+            className="mt-4 flex items-center justify-between gap-2 px-3.5 py-2.5 text-xs font-mono text-rose-300 bg-black/80 border border-rose-500/40 border-l-4 border-l-rose-500"
           >
             <div className="flex items-center gap-2">
               <AlertCircle className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
@@ -191,7 +192,7 @@ export function AddMemberForm({ onMemberAdded }: AddMemberFormProps) {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.15 }}
             role="status"
-            className="mt-3 flex items-center justify-between gap-2 px-3 py-2 text-xs font-mono font-bold text-[#D6FF00] bg-[#D6FF00]/10 border border-[#D6FF00]/40 border-l-2 border-l-[#D6FF00]"
+            className="mt-4 flex items-center justify-between gap-2 px-3.5 py-2.5 text-xs font-mono font-bold text-[#D6FF00] bg-black/80 border border-[#D6FF00]/40 border-l-4 border-l-[#D6FF00]"
           >
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#D6FF00] flex-shrink-0" />

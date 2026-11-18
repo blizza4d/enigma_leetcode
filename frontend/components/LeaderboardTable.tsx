@@ -59,6 +59,15 @@ export function LeaderboardTable({
 }: LeaderboardTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Guarantee strictly unique sequential positions (1..N) across the grid
+  const uniqueRanksByUsername = useMemo(() => {
+    const map = new Map<string, number>();
+    entries.forEach((entry, idx) => {
+      map.set(entry.username, idx + 1);
+    });
+    return map;
+  }, [entries]);
+
   const filteredEntries = useMemo(() => {
     if (!searchQuery.trim()) return entries;
     const q = searchQuery.toLowerCase().trim();
@@ -275,9 +284,10 @@ export function LeaderboardTable({
               className="space-y-3.5"
             >
               {filteredEntries.map((member) => {
-                const isFirst = member.rank === 1;
-                const isSecond = member.rank === 2;
-                const isThird = member.rank === 3;
+                const displayRank = uniqueRanksByUsername.get(member.username) ?? member.rank;
+                const isFirst = displayRank === 1;
+                const isSecond = displayRank === 2;
+                const isThird = displayRank === 3;
                 const isPodium = isFirst || isSecond || isThird;
 
                 const total = Math.max(member.totalSolved, 1);
@@ -310,7 +320,7 @@ export function LeaderboardTable({
                       <span
                         className={cn(
                           'font-sans font-black italic tracking-tighter leading-none select-none tabular-nums whitespace-nowrap transition-all duration-150',
-                          member.rank >= 10 ? 'text-4xl sm:text-5xl' : 'text-5xl sm:text-6xl',
+                          displayRank >= 10 ? 'text-4xl sm:text-5xl' : 'text-5xl sm:text-6xl',
                           isFirst &&
                             'text-[#D6FF00] drop-shadow-[0_0_16px_rgba(214,255,0,0.5)]',
                           isSecond &&
@@ -321,7 +331,7 @@ export function LeaderboardTable({
                             'text-white/10 group-hover:text-[#D6FF00]/45'
                         )}
                       >
-                        #{member.rank}
+                        #{displayRank}
                       </span>
                     </div>
 

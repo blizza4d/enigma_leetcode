@@ -25,10 +25,10 @@ class RankingServiceTest {
     }
 
     @Test
-    @DisplayName("Default ranking should sort by totalSolved desc, with ties sharing a rank")
-    void testDefaultRankingAndTies() {
+    @DisplayName("Default ranking should sort by totalSolved desc and assign strictly unique sequential ranks")
+    void testDefaultRankingUniqueSequentialRanks() {
         PlayerStats p1 = PlayerStats.ok("Alice", "alice", 500, 100, 300, 100, 10, 2100.0, 20, now);
-        // p2 and p3 have identical scores across ranking criteria -> should tie
+        // p2 and p3 have identical scores -> broken deterministically by username (bob < charlie)
         PlayerStats p2 = PlayerStats.ok("Bob", "bob", 400, 100, 200, 100, 8, 1900.0, 15, now);
         PlayerStats p3 = PlayerStats.ok("Charlie", "charlie", 400, 100, 200, 100, 8, 1900.0, 15, now);
         PlayerStats p4 = PlayerStats.ok("Diana", "diana", 300, 50, 150, 100, 5, 1750.0, 10, now);
@@ -36,15 +36,15 @@ class RankingServiceTest {
         List<LeaderboardEntryDto> ranked = rankingService.rankAndSort(List.of(p3, p4, p1, p2), "solved", "desc");
 
         assertThat(ranked).hasSize(4);
-        // Rank 1: Alice (500)
         assertThat(ranked.get(0).username()).isEqualTo("alice");
         assertThat(ranked.get(0).rank()).isEqualTo(1);
 
-        // Rank 2: Tied Bob and Charlie (400)
+        assertThat(ranked.get(1).username()).isEqualTo("bob");
         assertThat(ranked.get(1).rank()).isEqualTo(2);
-        assertThat(ranked.get(2).rank()).isEqualTo(2);
 
-        // Rank 4: Diana (300) - Standard competition ranking (1, 2, 2, 4)
+        assertThat(ranked.get(2).username()).isEqualTo("charlie");
+        assertThat(ranked.get(2).rank()).isEqualTo(3);
+
         assertThat(ranked.get(3).username()).isEqualTo("diana");
         assertThat(ranked.get(3).rank()).isEqualTo(4);
     }

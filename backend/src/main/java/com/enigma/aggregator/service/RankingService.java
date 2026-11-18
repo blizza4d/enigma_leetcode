@@ -11,9 +11,10 @@ import java.util.*;
  * Supports configurable sortBy (solved, streak, rating) and order (desc, asc).
  *
  * Ranking rules:
- * - Default: total solved descending, with ties broken by contest rating, then streak.
+ * - Default: total solved descending, with ties broken deterministically by contest rating,
+ *   then streak, then alphabetically by username.
  * - Members with null contest ratings sort last when sorting by rating.
- * - Tied scores share a rank (Standard Competition Ranking).
+ * - Every member receives a strictly unique sequential rank (1, 2, 3, ..., N).
  */
 @Service
 public class RankingService {
@@ -48,7 +49,7 @@ public class RankingService {
         Comparator<PlayerStats> comparator = buildComparator(normalizedSortBy, isAsc);
         sorted.sort(comparator);
 
-        return assignRanks(sorted, normalizedSortBy);
+        return assignSequentialRanks(sorted);
     }
 
     private Comparator<PlayerStats> buildComparator(String sortBy, boolean isAsc) {
@@ -65,10 +66,11 @@ public class RankingService {
         if (!isAsc) {
             comp = comp.reversed();
         }
-        // Tie-breakers: contestRating (desc, nulls last) -> streak (desc) -> displayName (asc)
+        // Deterministic tie-breakers: contestRating (desc, nulls last) -> streak (desc) -> username (asc) -> displayName (asc)
         return comp
             .thenComparing(PlayerStats::contestRating, Comparator.nullsLast(Comparator.reverseOrder()))
             .thenComparing(Comparator.comparingInt(PlayerStats::currentStreak).reversed())
+            .thenComparing(PlayerStats::username, String.CASE_INSENSITIVE_ORDER)
             .thenComparing(PlayerStats::displayName, String.CASE_INSENSITIVE_ORDER);
     }
 
@@ -77,10 +79,11 @@ public class RankingService {
         if (!isAsc) {
             comp = comp.reversed();
         }
-        // Tie-breakers: totalSolved (desc) -> contestRating (desc, nulls last) -> displayName (asc)
+        // Deterministic tie-breakers: totalSolved (desc) -> contestRating (desc, nulls last) -> username (asc) -> displayName (asc)
         return comp
             .thenComparing(Comparator.comparingInt(PlayerStats::totalSolved).reversed())
             .thenComparing(PlayerStats::contestRating, Comparator.nullsLast(Comparator.reverseOrder()))
+            .thenComparing(PlayerStats::username, String.CASE_INSENSITIVE_ORDER)
             .thenComparing(PlayerStats::displayName, String.CASE_INSENSITIVE_ORDER);
     }
 
@@ -89,58 +92,22 @@ public class RankingService {
         Comparator<Double> ratingComp = isAsc ? Comparator.naturalOrder() : Comparator.reverseOrder();
         Comparator<PlayerStats> comp = Comparator.comparing(PlayerStats::contestRating, Comparator.nullsLast(ratingComp));
 
-        // Tie-breakers: totalSolved (desc) -> streak (desc) -> displayName (asc)
+        // Deterministic tie-breakers: totalSolved (desc) -> streak (desc) -> username (asc) -> displayName (asc)
         return comp
             .thenComparing(Comparator.comparingInt(PlayerStats::totalSolved).reversed())
             .thenComparing(Comparator.comparingInt(PlayerStats::currentStreak).reversed())
+            .thenComparing(PlayerStats::username, String.CASE_INSENSITIVE_ORDER)
             .thenComparing(PlayerStats::displayName, String.CASE_INSENSITIVE_ORDER);
     }
 
     /**
-     * Assigns competition ranks. Consecutive members with identical ranking metrics share a rank.
+     * Assigns strictly sequential unique ranks (1, 2, 3, ..., N) so no two drivers share a position.
      */
-    private List<LeaderboardEntryDto> assignRanks(List<PlayerStats> sorted, String sortBy) {
+    private List<LeaderboardEntryDto> assignSequentialRanks(List<PlayerStats> sorted) {
         List<LeaderboardEntryDto> result = new ArrayList<>(sorted.size());
-        if (sorted.isEmpty()) {
-            return result;
+        for (int i = 0; i < sorted.size(); i++) {
+            result.add(LeaderboardEntryDto.from(i + 1, sorted.get(i)));
         }
-
-        int currentRank = 1;
-        result.add(LeaderboardEntryDto.from(currentRank, sorted.get(0)));
-
-        for (int i = 1; i < sorted.size(); i++) {
-            PlayerStats current = sorted.get(i);
-            PlayerStats previous = sorted.get(i - 1);
-
-            if (isTied(current, previous, sortBy)) {
-                result.add(LeaderboardEntryDto.from(currentRank, current));
-            } else {
-                currentRank = i + 1; // Standard competition ranking (1, 2, 2, 4)
-                result.add(LeaderboardEntryDto.from(currentRank, current));
-            }
-        }
-
         return Collections.unmodifiableList(result);
-    }
-
-    /**
-     * Checks whether two adjacent sorted players share identical ranking criteria.
-     */
-    private boolean isTied(PlayerStats a, PlayerStats b, String sortBy) {
-        return switch (sortBy) {
-            case "solved" ->
-                a.totalSolved() == b.totalSolved()
-                && Objects.equals(a.contestRating(), b.contestRating())
-                && a.currentStreak() == b.currentStreak();
-            case "streak" ->
-                a.currentStreak() == b.currentStreak()
-                && a.totalSolved() == b.totalSolved()
-                && Objects.equals(a.contestRating(), b.contestRating());
-            case "rating" ->
-                Objects.equals(a.contestRating(), b.contestRating())
-                && a.totalSolved() == b.totalSolved()
-                && a.currentStreak() == b.currentStreak();
-            default -> false;
-        };
     }
 }

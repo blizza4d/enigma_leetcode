@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { LeaderboardResponse, SortBy, SortOrder } from '@/types/leaderboard';
-import { fetchLeaderboard } from '@/lib/api';
+import { fetchLeaderboard, API_BASE_URL } from '@/lib/api';
 import { LeaderboardTable } from './LeaderboardTable';
 import { RefreshButton } from './RefreshButton';
 import { Trophy, Code2, Flame, Award, Clock, AlertTriangle } from 'lucide-react';
@@ -168,7 +168,7 @@ export function LeaderboardDashboard({ initialData, initialError }: LeaderboardD
             <p className="font-semibold text-rose-200">Failed to connect to backend server</p>
             <p className="text-rose-300/80">{error}</p>
             <p className="text-[11px] text-neutral-400 mt-1">
-              Ensure the Spring Boot backend is running on <code className="text-neutral-200 bg-neutral-900 px-1 py-0.5 rounded">http://localhost:8080</code>.
+              Ensure the Spring Boot backend is running on <code className="text-neutral-200 bg-neutral-900 px-1 py-0.5 rounded">{API_BASE_URL}</code>.
             </p>
           </div>
         </div>

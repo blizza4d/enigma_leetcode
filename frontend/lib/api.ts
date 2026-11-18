@@ -1,8 +1,12 @@
 import { LeaderboardResponse, RefreshStatus, SortBy, SortOrder } from '@/types/leaderboard';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') ||
-  'http://localhost:8080/api/v1';
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'https://enigma-leetcode-2.onrender.com';
+
+const normalizedBase = API_BASE_URL.replace(/\/+$/, '');
+const API_V1_BASE = normalizedBase.endsWith('/api/v1')
+  ? normalizedBase
+  : `${normalizedBase}/api/v1`;
 
 /**
  * Fetches the current leaderboard snapshot with optional sorting criteria.
@@ -11,7 +15,7 @@ export async function fetchLeaderboard(
   sortBy: SortBy = 'solved',
   order: SortOrder = 'desc'
 ): Promise<LeaderboardResponse> {
-  const url = new URL(`${API_BASE_URL}/leaderboard`);
+  const url = new URL(`${API_V1_BASE}/leaderboard`);
   url.searchParams.set('sortBy', sortBy);
   url.searchParams.set('order', order);
 
@@ -43,7 +47,7 @@ export async function fetchLeaderboard(
  * Throws an error with status 409 if a refresh is already running.
  */
 export async function triggerRefresh(): Promise<RefreshStatus> {
-  const res = await fetch(`${API_BASE_URL}/leaderboard/refresh`, {
+  const res = await fetch(`${API_V1_BASE}/leaderboard/refresh`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -78,7 +82,7 @@ export async function triggerRefresh(): Promise<RefreshStatus> {
  * Queries current refresh execution state and progress.
  */
 export async function fetchRefreshStatus(): Promise<RefreshStatus> {
-  const res = await fetch(`${API_BASE_URL}/leaderboard/status`, {
+  const res = await fetch(`${API_V1_BASE}/leaderboard/status`, {
     cache: 'no-store',
     headers: {
       Accept: 'application/json',

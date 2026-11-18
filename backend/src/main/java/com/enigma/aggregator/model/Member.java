@@ -1,5 +1,6 @@
 package com.enigma.aggregator.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 
@@ -16,6 +17,7 @@ public record Member(
 
     @NotBlank(message = "LeetCode username must not be blank")
     @JsonProperty("leetcodeUsername")
+    @JsonAlias("username")
     String leetcodeUsername
 ) {
     public Member {

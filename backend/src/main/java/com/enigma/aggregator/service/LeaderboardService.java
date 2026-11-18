@@ -133,6 +133,14 @@ public class LeaderboardService {
         rosterLoader.addMember(candidate);
         cache.upsertEntry(stats);
 
+        if (stats.status() != FetchStatus.OK) {
+            try {
+                triggerRefresh();
+            } catch (RefreshAlreadyRunningException ignored) {
+                log.debug("Background refresh already running after adding '{}'", trimmedUsername);
+            }
+        }
+
         log.info("Successfully registered '{}' (@{}) with status {} and {} solved.",
             displayName, trimmedUsername, stats.status(), stats.totalSolved());
 

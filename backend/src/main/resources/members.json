@@ -1,9 +1,9 @@
 [
-  { "name": "blizza4d", "leetcodeUsername": "blizza4d" },
-  { "name": "Mohamed Aazil", "leetcodeUsername": "Mohamed_Aazil" },
-  { "name": "Ajay Manikandan", "leetcodeUsername": "Ajay_Manikandan" },
-  { "name": "Kathir", "leetcodeUsername": "Kathir-3447" },
-  { "name": "Mithun 777", "leetcodeUsername": "Mithun_777_" },
-  { "name": "HRS 551", "leetcodeUsername": "HRS_551" },
-  { "name": "Mithun Sundar", "leetcodeUsername": "Mithun_Sundar" }
+  {"username": "blizza4d", "name": "blizza4d"},
+  {"username": "Mohamed_Aazil", "name": "Mohamed_Aazil"},
+  {"username": "Ajay_Manikandan", "name": "Ajay_Manikandan"},
+  {"username": "Kathir-3447", "name": "Kathir-3447"},
+  {"username": "Mithun_777_", "name": "Mithun_777_"},
+  {"username": "HRS_551", "name": "HRS_551"},
+  {"username": "Mithun_Sundar", "name": "Mithun_Sundar"}
 ]

@@ -140,6 +140,13 @@ public class RosterLoader {
         return normalized;
     }
 
+    /**
+     * Convenience overload to dynamically register a LeetCode username using the username as display name.
+     */
+    public void addMember(String username) {
+        addMember(new Member(username, username));
+    }
+
     public List<Member> getMembers() {
         return Collections.unmodifiableList(members);
     }

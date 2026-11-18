@@ -52,12 +52,8 @@ export function LeaderboardDashboard({ initialData, initialError }: LeaderboardD
 
   const handleMemberAdded = (updatedLeaderboard: LeaderboardResponse) => {
     setError(null);
-    if (sortBy === 'solved' && order === 'desc') {
-      setData(updatedLeaderboard);
-    } else {
-      setData(updatedLeaderboard);
-      loadData(sortBy, order);
-    }
+    setData(updatedLeaderboard);
+    loadData(sortBy, order);
   };
 
   // Format "Last updated"

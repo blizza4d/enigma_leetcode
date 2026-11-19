@@ -2,6 +2,7 @@ import { RacingMarquee } from '@/components/RacingMarquee';
 import { Navbar } from '@/components/Navbar';
 import { LeaderboardDashboard } from '@/components/LeaderboardDashboard';
 import { TelemetryEasterEggs } from '@/components/TelemetryEasterEggs';
+import { IntroSequence } from '@/components/IntroSequence';
 import { fetchLeaderboard } from '@/lib/api';
 import { LeaderboardResponse } from '@/types/leaderboard';
 
@@ -19,6 +20,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col text-white">
+      <IntroSequence />
       <TelemetryEasterEggs />
       <RacingMarquee />
       <Navbar />

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Radio, Zap, X } from 'lucide-react';
+import { Activity, Radio, Zap, X, RotateCcw } from 'lucide-react';
 
 const TEAM_RADIO_MESSAGES = [
   'BOX BOX — TIME TO SOLVE A HARD DP PROBLEM',
@@ -90,6 +90,22 @@ export function Navbar() {
 
           {/* Live Telemetry Indicators with Occasional Subtle Flicker */}
           <div className="flex items-center gap-2.5">
+            {/* Replay Intro Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('trigger-enigma-intro'));
+                }
+              }}
+              title="Replay F1 Lights Out Sequence"
+              aria-label="Replay F1 Lights Out Sequence"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] text-[#888888] hover:text-[#D6FF00] border border-white/10 hover:border-[#D6FF00]/40 text-[10px] font-mono uppercase tracking-[0.16em] transition-colors focus:outline-none cursor-pointer"
+            >
+              <RotateCcw className="w-3 h-3 text-[#D6FF00]" />
+              <span className="hidden sm:inline">REPLAY INTRO</span>
+            </button>
+
             <div className="animate-telemetry-flicker hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/[0.04] border border-white/10 text-[10px] font-mono uppercase tracking-[0.16em] text-white">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D6FF00] opacity-75" />
